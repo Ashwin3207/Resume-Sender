@@ -19,12 +19,7 @@ DAILY_LIMIT = 5
 
 SUBJECT = "Application – Software Engineer / Internship"
 
-BODY_TEMPLATE = """To,
-
-{title},
-{company}
-
-Respected Sir/Madam,
+BODY_TEMPLATE = """Hi {name},
 
 I am a Computer Science Engineering student with hands-on experience through government internship, research work, and delivering real-world projects for startups and platforms.
 
@@ -48,18 +43,18 @@ def ensure_sent_column(rows):
 
 # -------- Send email --------
 
-def send_email(to_email, title, company):
+def send_email(to_email, name):
 
     msg = EmailMessage()
-    msg["From"] = EMAIL
+    msg["From"] = f"Ashwin Kumar Mathura <{EMAIL}>"
     msg["To"] = to_email
     msg["Subject"] = SUBJECT
 
     msg.set_content(BODY_TEMPLATE.format(
-        title=title,
-        company=company
+        name=name
     ))
 
+    # Attach resume
     with open(RESUME_FILE, "rb") as f:
         resume_data = f.read()
 
@@ -94,24 +89,24 @@ def send_daily_emails():
         if row["Sent"].upper() == "YES":
             continue
 
+        name = row["Name"]
         email = row["Email"]
-        title = row["Title"]
-        company = row["Company"]
 
         try:
-            send_email(email, title, company)
+            send_email(email, name)
 
-            print(f"✅ Sent to {email}")
+            print(f"✅ Sent to {name} ({email})")
 
             row["Sent"] = "YES"
             sent_today += 1
 
-            time.sleep(random.randint(20, 40))  # spam-safe delay
+            # spam-safe delay
+            time.sleep(random.randint(20, 40))
 
         except Exception as e:
             print(f"❌ Failed for {email} -> {e}")
 
-    # Write CSV back with Sent column
+    # Save updated CSV
     with open(CSV_FILE, "w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=rows[0].keys())
         writer.writeheader()
